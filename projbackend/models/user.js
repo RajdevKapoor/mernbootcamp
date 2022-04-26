@@ -1,4 +1,6 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
+const crypto = require('crypto');
+const { v1: uuidv1 } = require('uuid');
 
 var userSchema = new mongoose.Schema({
 	name: {
@@ -22,7 +24,6 @@ var userSchema = new mongoose.Schema({
 		type: String,
 		trim: true
 	},
-	//TODO: Salt
 	encry_password: {
 		type: String,
 		required: true
@@ -38,14 +39,28 @@ var userSchema = new mongoose.Schema({
 	}
 });
 
+userSchema
+	.virtual('password')
+	.set(function(password) {
+		this._password = password;
+		this.salt = uuidv1();
+		this.encry_password = this.securePassword(password);
+	})
+	.get(function() {
+		return this._password;
+	});
+
 userSchema.method = {
-	securePassword: function(password) {
-		if (!password) {
+	authenticate: function(plainPassword) {
+		return this.securePassword(plainPassword) === this.encry_password;
+	},
+	securePassword: function(plainPassword) {
+		if (!plainPassword) {
 			return '';
 		}
 
 		try {
-			return createHmac('sha256', this.salt).update(password).digest('hex');
+			return crypto.createHmac('sha256', this.salt).update(plainPassword).digest('hex');
 		} catch (error) {
 			return '';
 		}
