@@ -53,18 +53,16 @@ userSchema
 		return this._password;
 	});
 
-userSchema.method = {
-	authenticate: function(plainPassword) {
-		return this.securePassword(plainPassword) === this.encry_password;
+userSchema.methods = {
+	autheticate: function(plainpassword) {
+		return this.securePassword(plainpassword) === this.encry_password;
 	},
-	securePassword: function(plainPassword) {
-		if (!plainPassword) {
-			return '';
-		}
 
+	securePassword: function(plainpassword) {
+		if (!plainpassword) return '';
 		try {
-			return crypto.createHmac('sha256', this.salt).update(plainPassword).digest('hex');
-		} catch (error) {
+			return crypto.createHmac('sha256', this.salt).update(plainpassword).digest('hex');
+		} catch (err) {
 			return '';
 		}
 	}
